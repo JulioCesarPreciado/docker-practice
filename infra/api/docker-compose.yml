@@ -1,0 +1,17 @@
+services:
+  api:
+    build: ../../
+    container_name: ${APP_NAME}-api
+    ports:
+      - "8080:8080"
+    env_file:
+      - ../../.env
+    networks:
+      - app_net
+    depends_on:
+      - postgres
+      - redis
+
+networks:
+  app_net:
+    external: true

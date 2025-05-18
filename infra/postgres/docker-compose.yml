@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: ${APP_NAME}-postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-multiple-db.sh:/docker-entrypoint-initdb.d/init-multiple-db.sh
+    networks:
+      - app_net
+
+  backup:
+    image: postgres:17
+    container_name: ${APP_NAME}-backup
+    depends_on:
+      - postgres
+    entrypoint: >
+      bash -c '
+        while true; do
+          TIMESTAMP=$$(date '+%Y-%m-%d_%H-%M-%S')
+          pg_dump -h postgres -U ${POSTGRES_USER} -d ${POSTGRES_DB} | gzip > /backups/backup_$$TIMESTAMP.sql.gz
+          echo "📦 Backup created: backup_$$TIMESTAMP.sql.gz"
+
+            # Keep only the last 10 backups
+          ls -1t /backups/backup_*.sql.gz | tail -n +11 | xargs -r rm --
+
+          sleep ${BACKUP_INTERVAL}
+        done
+      '
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ${BACKUP_PATH:-./backups}:/backups
+    networks:
+      - app_net
+
+volumes:
+  pgdata:
+
+networks:
+  app_net:
+    name: app_net

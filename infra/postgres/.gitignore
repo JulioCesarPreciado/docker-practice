@@ -1,0 +1,6 @@
+# Database
+/backups/*
+!/backups/.gitkeep
+
+# Test
+/test

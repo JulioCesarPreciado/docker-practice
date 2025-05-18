@@ -1,0 +1,21 @@
+# Binaries
+/main
+*.exe
+*.out
+*.test
+
+# Dependency directories
+/vendor/
+
+# Build artifacts
+*.log
+
+# OS files
+.DS_Store
+
+# IDE/editor config
+.vscode/
+.idea/
+
+# Env files
+.env

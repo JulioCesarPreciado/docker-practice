@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>WebSocket Test</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+  <div class="flex flex-col items-center justify-center min-h-screen bg-gray-100 px-96">
+    <h1 class="text-4xl font-bold mb-4 text-center">🧪 WebSocket Chat</h1>
+    <div id="messages" class="flex flex-col border p-4 w-full h-96 overflow-y-scroll bg-white rounded shadow space-y-2">
+    </div>
+    <div class="flex mt-2">
+      <input type="text" id="messageInput" placeholder="Escribe un mensaje..." class="flex-1 border rounded p-4 w-96" />
+      <button onclick="sendMessage()"
+        class="ml-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Enviar</button>
+    </div>
+  </div>
+
+    <script>
+    const ws = new WebSocket("ws://localhost:9000/ws");
+    const messagesDiv = document.getElementById("messages");
+
+    function appendMessage(text, isUser = false) {
+      const bubble = document.createElement("div");
+      bubble.className = `max-w-xs px-4 py-2 rounded-lg shadow mb-2 ${
+        isUser
+          ? "bg-blue-500 text-white self-end"
+          : "bg-gray-200 text-gray-800 self-start"
+      }`;
+      bubble.textContent = text;
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "flex w-full";
+      wrapper.appendChild(bubble);
+
+      messagesDiv.appendChild(wrapper);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    ws.onopen = () => {
+      appendMessage("✅ Conectado al WebSocket");
+    };
+
+    ws.onmessage = async (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        const { message, type, minLength, maxLength, required, reference } = data;
+
+        appendMessage(message, false);
+
+        const container = document.querySelector(".flex.mt-2");
+        container.innerHTML = ""; // Clear previous input
+
+        if (type === "select" && reference) {
+          const select = document.createElement("select");
+          select.className = "flex-1 border rounded p-4 w-96";
+          select.required = required || false;
+
+          const label = document.createElement("option");
+          label.disabled = true;
+          label.selected = true;
+          label.textContent = "Selecciona una opción...";
+          select.appendChild(label);
+
+          let endpoint = `http://localhost:8080/${reference}`;
+          // Add query param for dependent fields
+          if (reference === "models" && window.lastBrandId) {
+            endpoint += `?brand_id=${window.lastBrandId}`;
+          } else if (reference === "years" && window.lastModelId) {
+            endpoint += `?model_id=${window.lastModelId}`;
+          } else if (reference === "versions" && window.lastYearId) {
+            endpoint += `?year_id=${window.lastYearId}`;
+          }
+
+          const res = await fetch(endpoint);
+          const options = await res.json();
+
+          for (const item of options) {
+            const opt = document.createElement("option");
+            opt.value = item.id;
+            opt.textContent = item.name;
+            select.appendChild(opt);
+          }
+
+          select.addEventListener("change", () => {
+            if (reference === "brands") window.lastBrandId = select.value;
+            if (reference === "models") window.lastModelId = select.value;
+            if (reference === "years") window.lastYearId = select.value;
+          });
+
+          select.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") sendMessage();
+          });
+
+          container.appendChild(select);
+        } else {
+          const input = document.createElement("input");
+          input.id = "messageInput";
+          input.placeholder = "Escribe un mensaje...";
+          input.className = "flex-1 border rounded p-4 w-96";
+          input.type = type || "text";
+          input.required = required || false;
+          input.minLength = minLength || 0;
+          input.maxLength = maxLength || 255;
+
+          input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") sendMessage();
+          });
+
+          container.appendChild(input);
+        }
+
+        const sendBtn = document.createElement("button");
+        sendBtn.textContent = "Enviar";
+        sendBtn.onclick = sendMessage;
+        sendBtn.className = "ml-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600";
+        container.appendChild(sendBtn);
+      } catch (err) {
+        appendMessage(event.data, false);
+      }
+    };
+
+    ws.onclose = () => {
+      appendMessage("❌ Conexión cerrada");
+    };
+
+    function sendMessage() {
+      const select = document.querySelector("select");
+      const input = document.getElementById("messageInput");
+      let text = "";
+
+      if (select && select.value && select.value !== "Selecciona una opción...") {
+        text = select.value;
+      } else if (input && input.value.trim() !== "") {
+        text = input.value.trim();
+      }
+
+      if (text !== "") {
+        ws.send(text);
+        appendMessage(text, true);
+
+        if (input) input.value = "";
+        if (select) select.selectedIndex = 0;
+      }
+    }
+
+    document.getElementById("messageInput").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        sendMessage();
+      }
+    });
+  </script>
+</body>
+
+</html>
