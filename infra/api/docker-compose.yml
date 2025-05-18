@@ -5,9 +5,9 @@ services:
       dockerfile: Dockerfile
     container_name: ${APP_NAME}-api
     ports:
-      - "8080:8080"
+      - "${PORT}:${PORT}"
     env_file:
-      - ./.env
+      - .env
     networks:
       - app_net
 
