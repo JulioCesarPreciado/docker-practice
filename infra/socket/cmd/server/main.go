@@ -1,4 +1,4 @@
-// Package main initializes and starts the WebSocket server for the Autocotiza chat system.
+// Package main initializes and starts the WebSocket server for the Example chat system.
 // It loads environment variables, configures routes, and listens for incoming HTTP connections.
 package main
 
