@@ -1,16 +1,13 @@
 services:
   api:
-    build: ../../
+    build: ./
     container_name: ${APP_NAME}-api
     ports:
       - "8080:8080"
     env_file:
-      - ../../.env
+      - .env
     networks:
       - app_net
-    depends_on:
-      - postgres
-      - redis
 
 networks:
   app_net:
