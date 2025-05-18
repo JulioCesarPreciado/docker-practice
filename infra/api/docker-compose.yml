@@ -1,11 +1,13 @@
 services:
   api:
-    build: ./
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: ${APP_NAME}-api
     ports:
       - "8080:8080"
     env_file:
-      - .env
+      - ./.env
     networks:
       - app_net
 

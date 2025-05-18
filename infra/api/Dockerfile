@@ -17,4 +17,4 @@ COPY --from=builder /app/main .
 COPY .env .env
 
 EXPOSE 8080
-CMD ["./main"]
+CMD ["sh", "-c", "printenv && ./main"]
