@@ -34,7 +34,7 @@ Use `docker-compose ps` to verify they are running. Data is persisted in the `pg
 Run the following script to create multiple databases and roles:
 
 ```bash
-docker-compose exec postgres /docker-entrypoint-initdb.d/init-multiple-db.sh mydatabase
+docker-compose exec postgres /docker-entrypoint-initdb.d/init-multiple-db.sh
 ```
 
 This creates:
