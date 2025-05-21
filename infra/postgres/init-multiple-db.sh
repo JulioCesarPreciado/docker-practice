@@ -42,7 +42,7 @@ if [ -z "$POSTGRES_USER" ]; then
 fi
 
 # Run SQL commands
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "postgres" --host "localhost" <<-EOSQL
     CREATE DATABASE ${DB_NAME};
     CREATE DATABASE ${DB_NAME}_backup;
     CREATE DATABASE ${DB_NAME}_test;
