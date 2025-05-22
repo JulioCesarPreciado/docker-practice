@@ -1,21 +1,21 @@
 services:
   redis:
     image: redis:8
-    container_name: redis
+    container_name: ${APP_NAME:-myapp}-redis
     restart: always
     ports:
       - "6379:6379"
     volumes:
-      - redis_data:/data
+      - redisdata:/data
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
     networks:
-      - app_net
+      - ${NETWORK_NAME:-app_net}
 
 volumes:
-  redis_data:
+  redisdata:
 
 networks:
   app_net:
-    external: true
+    name: ${NETWORK_NAME:-app_net}
