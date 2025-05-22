@@ -1,55 +1,47 @@
-import {
-  Card,
-  CardContent,
-  Typography,
-} from '@mui/material'
-
 import './App.css'
 import ChatActions from './components/ChatActions'
 import ChatContainer from './components/ChatContainer'
 
 import { useState } from 'react'
 import { useSocket } from './hooks/useSocket'
+import MessageBubble from './components/MessageBubble'
+import { CardContent } from '@mui/material'
+
+type Message = {
+  text: string
+  from: 'user' | 'system'
+}
 
 function App() {
-  const [messages, setMessages] = useState<string[]>([])
+  const [messages, setMessages] = useState<Message[]>([])
 
   const { sendMessage } = useSocket((newMsg: string) => {
-    setMessages((prev) => [...prev, newMsg])
+    const parsed = JSON.parse(newMsg)
+    setMessages((prev) => [...prev, { text: parsed.message, from: 'system' }])
   })
 
-  return (
-    <ChatContainer>
-      <Typography
-        variant="h4"
-        component="h1"
-        textAlign="center"
-        fontWeight="bold"
-        gutterBottom
-      >
-        Realtime Chat App 📱
-      </Typography>
+  const handleSend = (msg: string) => {
+    sendMessage(msg)
+    setMessages((prev) => [...prev, { text: msg, from: 'user' }])
+  }
 
-      <Card
+  return (
+    <ChatContainer title="Realtime Chat App 📱">
+      <CardContent
         sx={{
-          flexGrow: 1,
-          overflow: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
-          boxShadow: 3,
-          borderRadius: 4,
+          flex: 1,
+          backgroundColor: 'background.paper',
         }}
       >
-        <CardContent
-          sx={{
-            flex: 1,
-            backgroundColor: 'background.paper',
-          }}
-        >
-          {/* Mensajes u otros contenidos */}
-        </CardContent>
-        <ChatActions />
-      </Card>
+         {messages.map((msg, idx) => (
+        <MessageBubble
+          key={idx}
+          message={msg.text}
+          align={msg.from === 'user' ? 'right' : 'left'}
+        />
+      ))}
+      </CardContent>
+      <ChatActions onSend={handleSend} />
     </ChatContainer>
   )
 }
