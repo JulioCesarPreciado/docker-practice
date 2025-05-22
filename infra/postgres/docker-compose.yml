@@ -24,10 +24,15 @@ services:
       bash -c '
         while true; do
           TIMESTAMP=$$(date '+%Y-%m-%d_%H-%M-%S')
-          pg_dump -h postgres -U ${POSTGRES_USER} -d ${POSTGRES_DB} | gzip > /backups/backup_$$TIMESTAMP.sql.gz
-          echo "📦 Backup created: backup_$$TIMESTAMP.sql.gz"
+          BACKUP_FILE="/backups/backup_$$TIMESTAMP.sql.gz"
+          pg_dump -h postgres -U ${POSTGRES_USER} -d ${POSTGRES_DB} | gzip > /backups/$$BACKUP_FILE
+          echo "📦 Backup created: $$BACKUP_FILE"
 
-            # Keep only the last 10 backups
+          # Restore the dump into the _backup database
+          echo "🌀 Restoring into ${POSTGRES_DB}_backup..."
+          gunzip -c $$BACKUP_FILE | psql -h postgres -U ${POSTGRES_USER} -d ${POSTGRES_DB}_backup
+          
+          # Keep only the last 10 backups
           ls -1t /backups/backup_*.sql.gz | tail -n +11 | xargs -r rm --
 
           sleep ${BACKUP_INTERVAL}
