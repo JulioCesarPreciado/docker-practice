@@ -28,6 +28,11 @@ services:
           pg_dump -h postgres -U ${POSTGRES_USER} -d ${POSTGRES_DB} | gzip > /backups/$$BACKUP_FILE
           echo "📦 Backup created: $$BACKUP_FILE"
 
+          # Drop and recreate the _backup database
+          echo "🧨 Dropping and recreating ${POSTGRES_DB}_backup..."
+          psql -h postgres -U ${POSTGRES_USER} -d postgres -c "DROP DATABASE IF EXISTS ${POSTGRES_DB}_backup;"
+          psql -h postgres -U ${POSTGRES_USER} -d postgres -c "CREATE DATABASE ${POSTGRES_DB}_backup;"
+
           # Restore the dump into the _backup database
           echo "🌀 Restoring into ${POSTGRES_DB}_backup..."
           gunzip -c $$BACKUP_FILE | psql -h postgres -U ${POSTGRES_USER} -d ${POSTGRES_DB}_backup
