@@ -1,6 +1,16 @@
-import { Box, Container } from "@mui/material";
+import {
+    Box,
+    Card,
+    Container,
+    Typography,
+} from '@mui/material'
 
-export default function ChatContainer({ children }: { children: React.ReactNode }) {
+interface ChatContainerProps {
+    title?: string;
+    children: React.ReactNode;
+}
+
+export default function ChatContainer({ title, children }: ChatContainerProps) {
     return (
         <Container maxWidth="lg">
             <Box
@@ -11,7 +21,29 @@ export default function ChatContainer({ children }: { children: React.ReactNode 
                     p: 2,
                 }}
             >
-                {children}
+                {title && (
+                    <Typography
+                        variant="h4"
+                        component="h1"
+                        textAlign="center"
+                        fontWeight="bold"
+                        gutterBottom
+                    >
+                        {title}
+                    </Typography>
+                )}
+                <Card
+                    sx={{
+                        flexGrow: 1,
+                        overflow: 'auto',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        boxShadow: 3,
+                        borderRadius: 4,
+                    }}
+                >
+                    {children}
+                </Card>
             </Box>
         </Container>
     )
