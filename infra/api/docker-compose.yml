@@ -3,14 +3,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: ${APP_NAME}-api
+    container_name: ${APP_NAME:-myapp}-api
     ports:
-      - "${PORT}:${PORT}"
+      - "${PORT:-8080}:${PORT:-8080}"
     env_file:
       - .env
     networks:
-      - app_net
+      - ${NETWORK_NAME:-app_net}
 
 networks:
   app_net:
-    external: true
+    name: ${NETWORK_NAME:-app_net}
