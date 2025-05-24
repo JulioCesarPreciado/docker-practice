@@ -1,41 +1,26 @@
-import './App.css'
-import ChatActions from './components/ChatActions'
-import ChatContainer from './components/ChatContainer'
+import './App.css';
+import ChatActions from './components/ChatActions';
+import ChatContainer from './components/ChatContainer';
 
-import { useState } from 'react'
-import { useSocket } from './hooks/useSocket'
-import MessageBubble from './components/MessageBubble'
-import { CardContent } from '@mui/material'
-
-type Message = {
-  text: string
-  from: 'user' | 'system'
-}
-
-type InputConfig = {
-  maxLength: number
-  minLength: number
-  reference?: string
-  required: boolean
-  type: string
-}
+import { useSocket } from './hooks/useSocket';
+import { CardContent } from '@mui/material';
+import ChatMessageList from './components/ChatMessageList';
+import { parseSocketMessage } from './utils/parseSocketMessage';
+import { useInputManager } from './hooks/useInputManager';
 
 function App() {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [inputConfig, setInputConfig] = useState<InputConfig | undefined>(undefined)
+  const { messages, addMessage, inputConfig, setInputConfig } = useInputManager();
 
   const { sendMessage } = useSocket((newMsg: string) => {
-    const parsed = JSON.parse(newMsg)
-    setMessages((prev) => [...prev, { text: parsed.message, from: 'system' }])
-
-    const { minLength, maxLength, reference, required, type } = parsed
-    setInputConfig({ minLength, maxLength, reference, required, type })
-  })
+    const { message, inputConfig } = parseSocketMessage(newMsg);
+    addMessage(message, 'system');
+    setInputConfig(inputConfig);
+  });
 
   const handleSend = (msg: string) => {
-    sendMessage(msg)
-    setMessages((prev) => [...prev, { text: msg, from: 'user' }])
-  }
+    sendMessage(msg);
+    addMessage(msg, 'user');
+  };
 
   return (
     <ChatContainer title="Realtime Chat App 📱">
@@ -45,13 +30,7 @@ function App() {
           backgroundColor: 'background.paper',
         }}
       >
-        {messages.map((msg, idx) => (
-          <MessageBubble
-            key={idx}
-            message={msg.text}
-            align={msg.from === 'user' ? 'right' : 'left'}
-          />
-        ))}
+        <ChatMessageList messages={messages} />
       </CardContent>
       <ChatActions onSend={handleSend} inputConfig={inputConfig} />
     </ChatContainer>
