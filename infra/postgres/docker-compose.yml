@@ -23,9 +23,10 @@ services:
     entrypoint: >
       bash -c '
         while true; do
+          echo "🔄 Starting backup process..."
           TIMESTAMP=$$(date '+%Y-%m-%d_%H-%M-%S')
           BACKUP_FILE="/backups/backup_$$TIMESTAMP.sql.gz"
-          pg_dump -h postgres -U ${POSTGRES_USER} -d ${POSTGRES_DB} | gzip > /backups/$$BACKUP_FILE
+          pg_dump -h postgres -U ${POSTGRES_USER} -d ${POSTGRES_DB} | gzip > $$BACKUP_FILE
           echo "📦 Backup created: $$BACKUP_FILE"
 
           # Drop and recreate the _backup database
@@ -54,5 +55,4 @@ volumes:
   pgdata:
 
 networks:
-  app_net:
-    name: ${NETWORK_NAME:-app_net}
+
