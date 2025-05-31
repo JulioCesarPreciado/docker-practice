@@ -8,7 +8,7 @@ import {
   InputLabel,
 } from '@mui/material'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import ChatSendButton from '../ChatSendButton'
 
 interface InputConfig {
@@ -18,6 +18,22 @@ interface InputConfig {
   required: boolean
   type: string
 }
+
+function getValidationError(input: string, inputConfig: InputConfig): string {
+  if (inputConfig.required && (typeof input === 'string' ? input.trim() : input) === '') {
+    return 'Este campo es obligatorio.'
+  }
+  if (inputConfig.type !== 'select') {
+    if (input.length < inputConfig.minLength) {
+      return `Debe tener al menos ${inputConfig.minLength} caracteres.`
+    }
+    if (input.length > inputConfig.maxLength) {
+      return `Debe tener menos de ${inputConfig.maxLength + 1} caracteres.`
+    }
+  }
+  return ''
+}
+
 interface ChatActionsProps {
   onSend: (message: string) => void
   inputConfig?: InputConfig
@@ -43,22 +59,9 @@ export default function ChatActions({ onSend, inputConfig }: ChatActionsProps) {
 
   const validate = (): boolean => {
     if (!inputConfig) return true
-    if (inputConfig.required && (typeof input === 'string' ? input.trim() : input) === '') {
-      setError('Este campo es obligatorio.')
-      return false
-    }
-    if (inputConfig.type !== 'select') {
-      if (input.length < inputConfig.minLength) {
-        setError(`Debe tener al menos ${inputConfig.minLength} caracteres.`)
-        return false
-      }
-      if (input.length > inputConfig.maxLength) {
-        setError(`Debe tener menos de ${inputConfig.maxLength + 1} caracteres.`)
-        return false
-      }
-    }
-    setError('')
-    return true
+    const validationError = getValidationError(input, inputConfig)
+    setError(validationError)
+    return validationError === ''
   }
 
   const handleSend = () => {
@@ -73,6 +76,10 @@ export default function ChatActions({ onSend, inputConfig }: ChatActionsProps) {
       handleSend()
     }
   }
+
+  const isSendDisabled = useMemo(() => {
+    return inputConfig?.required && (typeof input === 'string' ? input.trim() : input) === ''
+  }, [inputConfig?.required, input])
 
   return (
     <CardActions
@@ -122,7 +129,7 @@ export default function ChatActions({ onSend, inputConfig }: ChatActionsProps) {
           }}
         />
       )}
-      <ChatSendButton handleSend={handleSend} disabled={inputConfig?.required && (typeof input === 'string' ? input.trim() : input) === ''} />
+      <ChatSendButton handleSend={handleSend} disabled={isSendDisabled} />
     </CardActions>
   )
 }
